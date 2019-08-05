@@ -10,3 +10,4 @@ RUN mkdir ~/.aws
 COPY unused.py .
 
 CMD [ "python", "./unused.py", "--exporter"]
+EXPOSE 8080
