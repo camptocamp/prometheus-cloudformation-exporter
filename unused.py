@@ -17,7 +17,7 @@ class unused_stacks:
         self.__profile = args.profile
         self.__region  = args.region
         self.__clean   = args.clean
-
+        self.__g       = Gauge('unused_stacks', 'Count of unused cloud formation stacks')
         session = boto3.session.Session(
                 profile_name = self.__profile,
                 region_name  = self.__region
@@ -54,7 +54,7 @@ class unused_stacks:
                     'CREATE_FAILED',
                     'ROLLBACK_FAILED',
                     'DELETE_FAILED',
-                    'UPDATE_ROLLBACK_FAILED',
+                    'UPDATE_ROLLBACK_FAILED'
                     ],
                 )
         for stack in stacks['StackSummaries']:
@@ -67,8 +67,7 @@ class unused_stacks:
         '''
         Ensure no unused stack is present
         '''
-        g = Gauge('unused_stacks', 'Count of unused cloud formation stacks')
-        g.set(len(self.__stacks.keys()))
+        self.__g.set(len(self.__stacks.keys()))
         if len(self.__stacks.keys()) > 0:
             self.out_msg = '%i stacks in a bad state' % len(self.__stacks.keys())
             self.out_status = 2
@@ -91,6 +90,8 @@ class unused_stacks:
     @REQUEST_TIME.time()
     def process_request(self, t):
         """A dummy function that takes some time."""
+        self.__get_stacks()
+        self.__check()
         time.sleep(t)
 
 
