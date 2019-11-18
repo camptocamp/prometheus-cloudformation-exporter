@@ -18,6 +18,9 @@ class unused_stacks:
         self.__region  = args.region
         self.__clean   = args.clean
         self.__g       = Gauge('unused_stacks', 'Count of unused cloud formation stacks')
+        self.__connect_and_check()
+
+    def __connect_and_check(self):
         session = boto3.session.Session(
                 profile_name = self.__profile,
                 region_name  = self.__region
@@ -90,8 +93,7 @@ class unused_stacks:
     @REQUEST_TIME.time()
     def process_request(self, t):
         """A dummy function that takes some time."""
-        self.__get_stacks()
-        self.__check()
+        self.__connect_and_check()
         time.sleep(t)
 
 
@@ -103,6 +105,7 @@ if __name__ == '__main__':
     parser.add_argument('--clean',  help='Clean unused cloudformation stacks', action='store_const', const=True)
     parser.add_argument('--exporter',  help='run as prometheus exporter on default port 8080 ', action='store_const', const=True)
     parser.add_argument('--exporter_port',  help='if run as prometheus exporter on default port 8080, change port here ', default=8080, type=int)
+    parser.add_argument('--scrape_delay',  help='how many seconds between aws api scrape', default=4, type=int)
 
     args = parser.parse_args()
     print (args.exporter)
@@ -111,7 +114,7 @@ if __name__ == '__main__':
         print("exporter mode on port %i"% args.exporter_port)
         start_http_server(args.exporter_port)
         while True:
-            worker.process_request(4)
+            worker.process_request(args.scrape_delay)
 
     else:
         print (worker.out_msg)
